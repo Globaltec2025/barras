@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Generador de Código de Barras</title>
+</head>
+<body>
+    <div id="loadingScreen" style="display: none;">
+        <div class="spinner"></div>
+        <p>BUSCANDO...</p>
+    </div>    
+    <div id="container">
+        <img src="{{ url_for('static', filename='imagenes/logo-globaltec.png') }}" alt="Logo Globaltec" class="header-image">
+        
+        <!-- Sección inicial de búsqueda -->
+        <div id="searchSection" style="display: block;">
+            <div class="input-container">
+                <label for="codeInput" class="label-codeInput">CODIGO<br>SAP</label>
+                <input type="text" id="codeInput" placeholder="Ingresa el código" aria-label="Código SAP">
+                <button id="searchButton" onclick="searchCode()">BUSCAR</button>
+            </div>
+        </div>
+
+        <!-- Sección de resultados (inicialmente oculta) -->
+        <div id="resultSection" style="display: none;">
+            <div class="result-container">
+                <div class="code-display">
+                    <label>CODIGO<br>SAP</label>
+                    <span id="codeDisplay"></span>
+                </div>
+
+                <div class="quantity-input">
+                    <label for="quantityInput">CANTIDAD</label>
+                    <input type="number" id="quantityInput" min="1" value="1">
+                </div>
+
+                <div class="description-display">
+                    <label>DESCRIPCIÓN:</label>
+                    <p id="descriptionDisplay"></p>
+                </div>
+
+                <div>
+                    <label for="printerSelect">Selecciona una impresora Bluetooth</label>
+                    <select id="printerSelect">
+                        <option value="">Cargando dispositivos...</option>
+                    </select>
+                </div>
+
+                <div class="button-container">
+                    <button onclick="imprimirPDF()">IMPRIMIR</button>
+                </div>
+
+                <div id="backButtonContainer">
+                    <button onclick="goBack()">REGRESAR</button>
+                </div>
+            </div>
+        </div>
+
+        <p id="errorMessage" class="error-message" role="alert"></p>
+        <p id="successMessage" class="success-message" role="status"></p>
+    </div>
+
+    <script>
+        // Verificar si el navegador soporta la Web Bluetooth API
+        if (!navigator.bluetooth) {
+            alert("El navegador no soporta la Web Bluetooth API.");
+        }
+
+        // Función para obtener dispositivos Bluetooth disponibles
+        function getBluetoothDevices() {
+            if (!navigator.bluetooth) {
+                alert("Bluetooth no está disponible en este navegador.");
+                return;
+            }
+
+            // Solicitar dispositivos Bluetooth
+            navigator.bluetooth.requestDevice({
+                acceptAllDevices: true, // Aceptar todos los dispositivos disponibles
+                optionalServices: ['printer'] // Filtro para buscar impresoras
+            })
+            .then(device => {
+                console.log("Dispositivo Bluetooth seleccionado: ", device);
+
+                // Mostrar dispositivo en el dropdown
+                const printerSelect = document.getElementById('printerSelect');
+                const option = document.createElement('option');
+                option.value = device.name;
+                option.textContent = device.name;
+                printerSelect.appendChild(option);
+            })
+            .catch(error => {
+                console.error("Error al obtener dispositivos Bluetooth: ", error);
+                alert("No se pudieron obtener los dispositivos Bluetooth.");
+            });
+        }
+
+        // Llamar a la función para obtener dispositivos Bluetooth cuando la página cargue
+        window.onload = function() {
+            getBluetoothDevices();
+        }
+
+        // Función para conectar a un dispositivo Bluetooth seleccionado
+        function connectBluetooth() {
+            const selectedDevice = document.getElementById('printerSelect').value;
+
+            if (!selectedDevice) {
+                alert("Por favor, selecciona un dispositivo Bluetooth.");
+                return;
+            }
+
+            // Encontrar el dispositivo y conectar
+            navigator.bluetooth.requestDevice({
+                acceptAllDevices: true, // Aceptar todos los dispositivos disponibles
+                optionalServices: ['printer'] // Filtro para buscar impresoras
+            })
+            .then(device => {
+                if (device.name === selectedDevice) {
+                    return device.gatt.connect();
+                } else {
+                    throw new Error('El dispositivo seleccionado no coincide.');
+                }
+            })
+            .then(server => {
+                console.log("Conectado al dispositivo:", server);
+                alert("Conexión exitosa con el dispositivo Bluetooth.");
+            })
+            .catch(error => {
+                console.error("Error al conectar al dispositivo Bluetooth: ", error);
+                alert("No se pudo conectar al dispositivo Bluetooth.");
+            });
+        }
+
+        // Función de búsqueda del código
+        function searchCode() {
+            const code = document.getElementById('codeInput').value;
+            document.getElementById('loadingScreen').style.display = 'flex'; // Mostrar pantalla de carga
+            fetch(`/buscar?codigo=${code}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('loadingScreen').style.display = 'none'; // Ocultar pantalla de carga
+                    if (data.error) {
+                        document.getElementById('errorMessage').textContent = data.error;
+                        document.getElementById('resultSection').style.display = 'none';
+                    } else {
+                        document.getElementById('codeDisplay').textContent = data.code;
+                        document.getElementById('descriptionDisplay').textContent = data.description;
+                        document.getElementById('resultSection').style.display = 'block';
+                        document.getElementById('errorMessage').textContent = '';
+
+                        // Guardar marca y medida en variables ocultas
+                        document.getElementById('codeDisplay').dataset.marca = data.marca;
+                        document.getElementById('codeDisplay').dataset.medida = data.medida;
+
+                        // Ocultar el botón de búsqueda y el contenedor de entrada
+                        document.getElementById('searchButton').style.display = 'none';
+                        document.querySelector('.input-container').style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('loadingScreen').style.display = 'none'; // Ocultar pantalla de carga
+                    document.getElementById('errorMessage').textContent = 'Error al buscar el código.';
+                    document.getElementById('resultSection').style.display = 'none';
+                });
+        }
+
+        // Función para regresar a la pantalla de búsqueda
+        function goBack() {
+            // Ocultar la sección de resultados
+            document.getElementById('resultSection').style.display = 'none';
+
+            // Mostrar la sección de búsqueda
+            const searchSection = document.getElementById('searchSection');
+            searchSection.style.display = 'flex';
+            searchSection.style.flexDirection = 'column';
+            searchSection.style.alignItems = 'center';
+            searchSection.style.justifyContent = 'center';
+
+            // Restaurar cualquier estilo del contenedor principal
+            const container = document.getElementById('container');
+            container.style.display = 'flex';
+            container.style.flexDirection = 'column';
+            container.style.alignItems = 'center';
+            container.style.justifyContent = 'center';
+
+            // Limpiar mensajes y campos
+            document.getElementById('codeInput').value = '';
+            document.getElementById('errorMessage').textContent = '';
+            document.getElementById('successMessage').textContent = '';
+
+            // Mostrar botón de búsqueda
+            document.getElementById('searchButton').style.display = 'inline-block';
+            document.querySelector('.input-container').style.display = 'flex';
+        }
+
+        // Función para imprimir PDF
+        function imprimirPDF() {
+            const code = document.getElementById('codeDisplay').textContent;
+            const quantity = document.getElementById('quantityInput').value;
+            const description = document.getElementById('descriptionDisplay').textContent;
+            const marca = document.getElementById('codeDisplay').dataset.marca;
+            const medida = document.getElementById('codeDisplay').dataset.medida;
+
+            fetch('/generar_pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    code: code,
+                    quantity: quantity,
+                    description: description,
+                    marca: marca,
+                    medida: medida
+                })
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const reader = new FileReader();
+                reader.onload = function() {
+                    const pdfData = reader.result.split(',')[1];
+                    const printerName = document.getElementById('printerSelect').value;
+                    if (!printerName) {
+                        alert("Por favor, selecciona una impresora.");
+                        return;
+                    }
+                    const config = qz.configs.create(printerName); // Usamos el nombre de la impresora seleccionada
+                    const data = [{
+                        type: 'pdf',
+                        format: 'base64',
+                        data: pdfData
+                    }];
+                    qz.print(config, data).then(function() {
+                        console.log("Impresión completada.");
+                        alert("El archivo se envió correctamente a la impresora.");
+                    }).catch(function(error) {
+                        console.error("Error al imprimir el PDF: ", error);
+                        alert("Error al enviar el archivo a la impresora.");
+                    });
+                };
+                reader.readAsDataURL(blob);
+            })
+            .catch(error => {
+                console.error("Error al generar el PDF: ", error);
+                alert("No se pudo generar el PDF en el servidor.");
+            });
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+

@@ -1,0 +1,280 @@
+/* Estilos generales para el cuerpo de la página */
+body {
+    font-family: Arial, sans-serif; /* Fuente de texto */
+    text-align: center; /* Centrar el texto */
+    background-color: #f3f3f3; /* Color de fondo */
+    padding: 20px; /* Espaciado interno */
+    margin: 0; /* Eliminar márgenes predeterminados */
+}
+
+/* Estilos para el contenedor principal */
+#container {
+    background-color: white; /* Color de fondo */
+    padding: 20px; /* Espaciado interno */
+    border-radius: 8px; /* Bordes redondeados */
+    display: inline-block; /* Mostrar como bloque en línea */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Sombra del contenedor */
+    text-align: left; /* Alinear texto a la izquierda */
+    max-width: 400px; /* Ancho máximo */
+}
+
+/* Estilos para la imagen de cabecera */
+.header-image {
+    width: 100%; /* Ancho completo */
+    max-width: 600px; /* Ancho máximo */
+    height: auto; /* Ajustar altura automáticamente */
+    display: block; /* Mostrar como bloque */
+    margin: 0 auto 35px; /* Centrar la imagen y agregar espaciado inferior */
+}
+
+/* Estilos para el contenedor de entrada */
+.input-container {
+    display: flex; /* Usar flexbox */
+    align-items: center; /* Alinear elementos verticalmente al centro */
+    justify-content: center; /* Centrar elementos horizontalmente */
+    flex-wrap: wrap; /* Permitir que los elementos se envuelvan */
+}
+
+/* Estilos para el campo de texto */
+input[type="text"] {
+    padding: 10px; /* Espaciado interno */
+    font-size: 16px; /* Tamaño de fuente */
+    width: 125px; /* Ancho del campo */
+    margin-right: 10px; /* Espaciado a la derecha */
+    border: 1px solid #ccc; /* Borde */
+    border-radius: 4px; /* Bordes redondeados */
+}
+
+.highlighted-code {
+    margin-left: 40px;
+    margin-bottom: 50px;
+}
+
+/* Estilos para los botones */
+button {
+    padding: 10px 20px; /* Espaciado interno */
+    font-size: 16px; /* Tamaño de fuente */
+    background-color: #007BFF; /* Color de fondo */
+    color: white; /* Color del texto */
+    border: none; /* Sin borde */
+    border-radius: 5px; /* Bordes redondeados */
+    cursor: pointer; /* Cambiar cursor al pasar sobre el botón */
+    margin-top: 40px;
+}
+
+#searchButton{
+    margin-left: 65px;
+    margin-right: 55px;
+}
+
+button:hover {
+    background-color: #0056b3; /* Color de fondo al pasar el cursor */
+}
+
+/* Estilos para los mensajes de error y éxito */
+#errorMessage, #successMessage {
+    margin-top: 10px; /* Espaciado superior */
+    text-align: center; /* Centrar el texto */
+}
+
+#errorMessage {
+    color: red; /* Color del texto */
+}
+
+#successMessage {
+    color: green; /* Color del texto */
+    text-align: center; /* Centrar el texto */
+}
+
+/* Estilos para las etiquetas */
+.label-codeInput{
+    display: inline-block; /* Mostrar como bloque en línea */
+    text-align: left; /* Alinear texto a la derecha */
+    margin-right: 10px; /* Espaciado a la derecha */
+    font-weight: bold;
+}
+
+/* Estilos para las etiquetas */
+.label-quantity{
+    display: inline-block; /* Mostrar como bloque en línea */
+    text-align: left; /* Alinear texto a la derecha */
+    margin-right: 10px; /* Espaciado a la derecha */
+    font-weight: bold;
+}
+
+/* Estilos para las etiquetas */
+.label-description {
+    display: inline-block; /* Mostrar como bloque en línea */
+    width: 150px; /* Ancho de la etiqueta */
+    text-align: center; /* Alinear texto a la derecha */
+    font-weight: bold;
+}
+
+/* Estilos para la sección de cantidad */
+#quantitySection {
+    display: flex; /* Usar flexbox */
+    flex-direction: column; /* Dirección de los elementos en columna */
+    align-items: flex-start; /* Alinear elementos al inicio */
+}
+
+/* Estilos para los grupos de entrada */
+.input-group {
+    display: flex; /* Usar flexbox */
+    align-items: center; /* Alinear elementos verticalmente al centro */
+    justify-content: center;
+}
+
+/* Estilos para el contenedor de botones */
+.button-container {
+    display: flex; /* Usar flexbox */
+    justify-content: center; /* Centrar elementos horizontalmente */
+}
+
+label {
+    font-weight: bold;
+    margin-right: 20px;
+}
+
+/* Estilos para las etiquetas */
+.label-quantityInput{
+    font-weight: bold;
+}
+
+#quantityInput {
+    width: 80px; /* Ajusta el ancho a 100 píxeles */
+    height: 20px; /* Ajusta la altura */
+    padding: 5px; /* Espaciado interno */
+    font-size: 16px; /* Tamaño de fuente */
+    border: 1px solid #ccc; /* Borde */
+    border-radius: 4px; /* Bordes redondeados */
+}
+
+.quantity-input{
+    margin-top: 25px;
+    display: flex; /* Usar flexbox */
+    justify-content: center;
+    align-items: center;
+}
+
+#quantitySection button {
+    margin-top: 5px; /* Espaciado superior */
+}
+
+.description-display{
+    margin-top: 25px;
+    margin-bottom: 13px;
+    display: flex; /* Usar flexbox */
+    justify-content: center;
+    align-items: center;
+}
+
+/* Estilos para la visualización de la descripción */
+#descriptionDisplay {
+    white-space: pre-wrap; /* Permitir saltos de línea */
+    word-wrap: break-word; /* Ajustar palabras largas */
+    word-break: break-all; /* Permitir que las palabras largas se dividan */
+    width: 50%; /* Asegurar que el contenedor ocupe todo el ancho disponible */
+    max-width: 300px; /* Limitar el ancho máximo para forzar saltos de línea */
+    line-height: 1.5; /* Aumentar el espacio entre líneas */
+    font-weight: bold;
+}
+
+.code-display{
+    display: flex; /* Usar flexbox */
+    justify-content: center;
+    font-weight: bold;
+}
+
+#codeDisplay{
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+#loadingScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.spinner {
+    border: 16px solid #f3f3f3; /* Light grey */
+    border-top: 16px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    animation: spin 2s linear infinite;
+}
+
+#backButtonContainer {
+    position: absolute; /* O fixed si quieres que el botón siempre esté en la misma posición al hacer scroll */
+    top: 10px; /* Ajusta la distancia desde el borde superior */
+    right: 40px; /* Ajusta la distancia desde el borde derecho */
+    z-index: 1000; /* Asegúrate de que el botón esté por encima de otros elementos */
+}
+
+#backButtonContainer button {
+    background-color: #007bff; /* Color de fondo */
+    color: white; /* Color del texto */
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+#backButtonContainer button:hover {
+    background-color: #0056b3; /* Color al pasar el mouse */
+}
+
+#printerSelect {
+    display: block;
+    margin-top: 10px;
+    padding: 5px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Asegura que el contenedor de la impresora esté centrado */
+.result-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Media query para pantallas pequeñas */
+@media (max-width: 600px) {
+    .label-codeInput, .label-quantity, .label-description {
+        width: auto; /* Ancho automático */
+        text-align: left; /* Alinear texto a la izquierda */
+        margin-right: 0; /* Sin espaciado a la derecha */
+    }
+
+    .input-group {
+        flex-direction: column; /* Dirección de los elementos en columna */
+        align-items: flex-start; /* Alinear elementos al inicio */
+    }
+
+    input[type="text"], input[type="number"] {
+        width: 100%; /* Ancho completo */
+        margin-right: 0; /* Sin espaciado a la derecha */
+    }
+
+    button {
+        width: 100%; /* Ancho completo */
+    }
+}
