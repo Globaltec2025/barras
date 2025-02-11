@@ -6,8 +6,7 @@ from reportlab.lib.units import mm
 from pdf2image import convert_from_bytes
 import io
 import os
-import fitz  # PyMuPDF
-from PIL import Image
+
 
 app = Flask(__name__)
 app.static_folder = 'static'
