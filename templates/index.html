@@ -162,58 +162,79 @@
             }
 
             try {
-                // Obtener datos de la interfaz
                 const code = document.getElementById('codeDisplay').textContent || "N/A";
                 const marca = document.getElementById('codeDisplay').dataset.marca || "Sin marca";
                 const medida = document.getElementById('codeDisplay').dataset.medida || "Sin medida";
                 let description = document.getElementById('descriptionDisplay').textContent || "Sin descripción";
 
-                // 📌 Función para dividir la descripción en líneas de máximo 40 caracteres
+                // 🔄 Reemplazar caracteres especiales y evitar errores con comillas dobles
+                const reemplazos = {
+                    "ñ": "n", "Ñ": "N",
+                    "á": "a", "é": "e", "í": "i", "ó": "o", "ú": "u",
+                    "Á": "A", "É": "E", "Í": "I", "Ó": "O", "Ú": "U"
+                };
+                description = description.replace(/[ñÑáéíóúÁÉÍÓÚ]/g, c => reemplazos[c] || c);
+                description = description.replace(/"/g, "'"); // Evitar errores con comillas dobles
+
+                // 🔹 Forzar solo DOS líneas dividiendo el texto
                 function dividirTexto(texto, maxLength) {
-                    let lineas = [];
-                    while (texto.length > 0) {
-                        lineas.push(texto.substring(0, maxLength));
-                        texto = texto.substring(maxLength);
+                    let palabras = texto.split(" ");
+                    let lineas = ["", ""];
+
+                    let lineaIndex = 0;
+
+                    for (let palabra of palabras) {
+                        if ((lineas[lineaIndex] + palabra).length > maxLength) {
+                            if (lineaIndex === 1) {
+                                lineas[lineaIndex] += " " + palabra; // Si ya es la segunda línea, forzar el texto ahí
+                            } else {
+                                lineaIndex++; // Pasar a la segunda línea
+                                lineas[lineaIndex] = palabra;
+                            }
+                        } else {
+                            lineas[lineaIndex] += (lineas[lineaIndex] ? " " : "") + palabra;
+                        }
                     }
-                    return lineas;
+
+                    return lineas.map(l => l.trim());
                 }
 
-                const descripcionLineas = dividirTexto(description, 40); // Máximo 40 caracteres por línea
+                const lineasTexto = dividirTexto(description, 40); // Max 28 caracteres por línea
 
-                // Comandos TSC
-                const commands = [
-                    "SIZE 76 mm, 25 mm\r\n",  // Tamaño de la etiqueta
-                    "GAP 2 mm, 0 mm\r\n",    // Espaciado entre etiquetas
-                    "DIRECTION 1\r\n",       // Dirección de impresión
-                    "CLS\r\n"                // Limpiar buffer
+                // 🔹 Construir comandos TSC
+                let y = 7; // Posición inicial para la descripción
+                let commands = [
+                    "SIZE 76 mm, 25 mm\r\n",
+                    "GAP 2 mm, 0 mm\r\n",
+                    "DIRECTION 1\r\n",
+                    "CLS\r\n"
                 ];
 
-                let y = 5; // Posición inicial para la descripción
-
-                // 📌 Imprimir la descripción (centrada en la parte superior)
-                for (const linea of descripcionLineas) {
-                    commands.push(`TEXT 30,${y},"1",0,1,1,"${linea}"\r\n`);
-                    y += 20;
+                // 📌 Imprimir cada línea en una nueva posición Y
+                for (const linea of lineasTexto) {
+                    if (linea) {
+                        commands.push(`TEXT 4,${y},"1",0,1,1,"${linea}"\r\n`);
+                        y += 20; // Mover hacia abajo para la siguiente línea
+                    }
                 }
 
-                // 📌 Generar código de barras en el centro
-                commands.push(`BARCODE 50,${y + 10},"128",50,1,0,2,2,"${code}"\r\n`);
-
-                // 📌 Imprimir marca y medida en la parte inferior
-                commands.push(`TEXT 50,${y + 110},"3",0,1,1,"${medida}"\r\n`);
-                commands.push(`TEXT 300,${y + 110},"3",0,1,1,"${marca}"\r\n`);
-
-                // 📌 Si la impresora admite imágenes, puedes agregar el logo GT aquí
-                // commands.push(`PUTBMP 10,${y + 20},"GT.BMP"\r\n`);
-
+                // 📌 Código de barras y demás elementos
+                commands.push(`BARCODE 4,${y-2},"128",100,0,0,7,2,"${code}"\r\n`);
+                commands.push(`TEXT 190,${y + 100},"3",0,1,1,"${code}"\r\n`);
+                commands.push(`TEXT 1,${y + 125},"2",0,1,1,"${medida}"\r\n`);
+                commands.push(`TEXT 440,${y + 125},"2",0,1,1,"${marca}"\r\n`);
                 commands.push("PRINT 1,1\r\n");
 
                 console.log("📤 Enviando impresión en TSC...");
 
-                // Enviar comandos TSC a la impresora
+                // 🔹 Enviar los comandos en partes pequeñas con pausas
                 for (const command of commands) {
+                    if (!printerCharacteristic.service.device.gatt.connected) {
+                        alert("⚠️ La impresora se ha desconectado.");
+                        return;
+                    }
                     await printerCharacteristic.writeValue(new TextEncoder().encode(command));
-                    await new Promise(resolve => setTimeout(resolve, 50));
+                    await new Promise(resolve => setTimeout(resolve, 50)); // Pequeña pausa entre envíos
                 }
 
                 console.log("✅ Impresión enviada en TSC");
