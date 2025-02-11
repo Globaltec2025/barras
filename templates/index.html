@@ -13,7 +13,7 @@
     </div>    
     <div id="container">
         <img src="{{ url_for('static', filename='imagenes/logo-globaltec.png') }}" alt="Logo Globaltec" class="header-image">
-       
+        
         <!-- Sección inicial de búsqueda -->
         <div id="searchSection" style="display: block;">
             <div class="input-container">
@@ -22,7 +22,7 @@
                 <button id="searchButton" onclick="searchCode()">BUSCAR</button>
             </div>
         </div>
- 
+
         <!-- Sección de resultados (inicialmente oculta) -->
         <div id="resultSection" style="display: none;">
             <div class="result-container">
@@ -30,72 +30,36 @@
                     <label>CODIGO<br>SAP</label>
                     <span id="codeDisplay"></span>
                 </div>
- 
+
                 <div class="quantity-input">
                     <label for="quantityInput">CANTIDAD</label>
                     <input type="number" id="quantityInput" min="1" value="1">
                 </div>
- 
-                <!--<div class="description-display">
+
+                <div class="description-display">
                     <label>DESCRIPCIÓN:</label>
                     <p id="descriptionDisplay"></p>
-                </div>-->
- 
-                <button id="btnConnect">Conectar Impresora</button>
- 
-                <div class="button-container">
-                    <button onclick="imprimirPDF()">IMPRIMIR</button>
                 </div>
- 
-                <button onclick="printTest()">Imprimir</button>
- 
+
+                <button id="btnConnect">Conectar Impresora</button>
+                <button id="btnPrintEscPos">Imprimir PDF (TSC)</button>
+
+                <!-- <div class="button-container">
+                    <button onclick="imprimirPDF()">IMPRIMIR</button>
+                </div>-->
+
                 <div id="backButtonContainer">
                     <button onclick="goBack()">REGRESAR</button>
                 </div>
             </div>
         </div>
- 
+
         <p id="errorMessage" class="error-message" role="alert"></p>
         <p id="successMessage" class="success-message" role="status"></p>
     </div>
- 
+
     <script>
-        // Verificar si el navegador soporta la Web Bluetooth API
-        if (!navigator.bluetooth) {
-            alert("El navegador no soporta la Web Bluetooth API.");
-        }
- 
-        // Función para conectar a un dispositivo Bluetooth seleccionado
-        function connectBluetooth() {
-            const selectedDevice = document.getElementById('printerSelect').value;
- 
-            if (!selectedDevice) {
-                alert("Por favor, selecciona un dispositivo Bluetooth.");
-                return;
-            }
- 
-            // Encontrar el dispositivo y conectar
-            navigator.bluetooth.requestDevice({
-                acceptAllDevices: true, // Aceptar todos los dispositivos disponibles
-                optionalServices: ['printer'] // Filtro para buscar impresoras
-            })
-            .then(device => {
-                if (device.name === selectedDevice) {
-                    return device.gatt.connect();
-                } else {
-                    throw new Error('El dispositivo seleccionado no coincide.');
-                }
-            })
-            .then(server => {
-                console.log("Conectado al dispositivo:", server);
-                alert("Conexión exitosa con el dispositivo Bluetooth.");
-            })
-            .catch(error => {
-                console.error("Error al conectar al dispositivo Bluetooth: ", error);
-                alert("No se pudo conectar al dispositivo Bluetooth.");
-            });
-        }
- 
+
         // Función de búsqueda del código
         function searchCode() {
             const code = document.getElementById('codeInput').value;
@@ -112,11 +76,11 @@
                         document.getElementById('descriptionDisplay').textContent = data.description;
                         document.getElementById('resultSection').style.display = 'block';
                         document.getElementById('errorMessage').textContent = '';
- 
+
                         // Guardar marca y medida en variables ocultas
                         document.getElementById('codeDisplay').dataset.marca = data.marca;
                         document.getElementById('codeDisplay').dataset.medida = data.medida;
- 
+
                         // Ocultar el botón de búsqueda y el contenedor de entrada
                         document.getElementById('searchButton').style.display = 'none';
                         document.querySelector('.input-container').style.display = 'none';
@@ -128,153 +92,141 @@
                     document.getElementById('resultSection').style.display = 'none';
                 });
         }
- 
+
         // Función para regresar a la pantalla de búsqueda
         function goBack() {
             // Ocultar la sección de resultados
             document.getElementById('resultSection').style.display = 'none';
- 
+
             // Mostrar la sección de búsqueda
             const searchSection = document.getElementById('searchSection');
             searchSection.style.display = 'flex';
             searchSection.style.flexDirection = 'column';
             searchSection.style.alignItems = 'center';
             searchSection.style.justifyContent = 'center';
- 
+
             // Restaurar cualquier estilo del contenedor principal
             const container = document.getElementById('container');
             container.style.flexDirection = 'column';
             container.style.alignItems = 'center';
             container.style.justifyContent = 'center';
- 
+
             // Limpiar mensajes y campos
             document.getElementById('codeInput').value = '';
             document.getElementById('errorMessage').textContent = '';
             document.getElementById('successMessage').textContent = '';
- 
+
             // Mostrar botón de búsqueda
             document.getElementById('searchButton').style.display = 'inline-block';
             document.querySelector('.input-container').style.display = 'flex';
         }
- 
-        let printerCharacteristic = null; // Variable global para almacenar la característica de escritura
- 
+
+        let printerCharacteristic = null;
+
         async function connectPrinter() {
             try {
                 console.log("🔍 Buscando impresora...");
- 
                 const device = await navigator.bluetooth.requestDevice({
                     acceptAllDevices: true,
-                    optionalServices: ["000018f0-0000-1000-8000-00805f9b34fb"] // UUID del servicio XPrinter
+                    optionalServices: ["000018f0-0000-1000-8000-00805f9b34fb"]
                 });
- 
+
                 console.log("📡 Dispositivo seleccionado:", device.name);
- 
                 const server = await device.gatt.connect();
                 console.log("✅ Conectado a:", device.name);
- 
+
                 const service = await server.getPrimaryService("000018f0-0000-1000-8000-00805f9b34fb");
                 console.log("🔍 Servicio obtenido:", service);
- 
-                printerCharacteristic = await service.getCharacteristic("00002af1-0000-1000-8000-00805f9b34fb");
-                console.log("📝 Característica de escritura lista:", printerCharacteristic.uuid);
- 
+
+                const characteristics = await service.getCharacteristics();
+                console.log("📝 Características disponibles:", characteristics.map(c => c.uuid));
+
+                // Seleccionar la característica de escritura
+                printerCharacteristic = characteristics.find(c => c.properties.write);
+                if (!printerCharacteristic) {
+                    throw new Error("No se encontró una característica de escritura.");
+                }
+
+                console.log("✅ Característica de escritura lista:", printerCharacteristic.uuid);
                 alert("¡Impresora conectada!");
- 
             } catch (error) {
                 console.error("❌ Error al conectar la impresora:", error);
-                alert("Error al conectar la impresora. Revisa la consola.");
+                alert("Error al conectar la impresora.");
             }
         }
- 
-        async function printTest() {
-            if (!printerCharacteristic) {
-                alert("Primero debes conectar la impresora.");
+
+        async function printTSC() {
+            if (!printerCharacteristic || !printerCharacteristic.service.device.gatt.connected) {
+                alert("⚠️ La impresora no está conectada.");
                 return;
             }
- 
+
             try {
-                const printCommand = new Uint8Array([
-                    0x1B, 0x40, // Inicializar
-                    0x1B, 0x21, 0x00, // Tamaño de fuente normal
-                    0x48, 0x6F, 0x6C, 0x61, 0x20, 0x4D, 0x75, 0x6E, 0x64, 0x6F, // "Hola Mundo"
-                    0x0A, 0x0A, 0x0A, // Saltos de línea
-                    0x1D, 0x56, 0x41, 0x03 // Corte de papel
-                ]);
- 
-                await printerCharacteristic.writeValue(printCommand);
-                console.log("🖨️ Impresión enviada con ESC/POS");
-                alert("¡Impresión enviada!");
- 
+                // Obtener datos de la interfaz
+                const code = document.getElementById('codeDisplay').textContent || "N/A";
+                const marca = document.getElementById('codeDisplay').dataset.marca || "Sin marca";
+                const medida = document.getElementById('codeDisplay').dataset.medida || "Sin medida";
+                let description = document.getElementById('descriptionDisplay').textContent || "Sin descripción";
+
+                // 📌 Función para dividir la descripción en líneas de máximo 40 caracteres
+                function dividirTexto(texto, maxLength) {
+                    let lineas = [];
+                    while (texto.length > 0) {
+                        lineas.push(texto.substring(0, maxLength));
+                        texto = texto.substring(maxLength);
+                    }
+                    return lineas;
+                }
+
+                const descripcionLineas = dividirTexto(description, 40); // Máximo 40 caracteres por línea
+
+                // Comandos TSC
+                const commands = [
+                    "SIZE 76 mm, 25 mm\r\n",  // Tamaño de la etiqueta
+                    "GAP 2 mm, 0 mm\r\n",    // Espaciado entre etiquetas
+                    "DIRECTION 1\r\n",       // Dirección de impresión
+                    "CLS\r\n"                // Limpiar buffer
+                ];
+
+                let y = 5; // Posición inicial para la descripción
+
+                // 📌 Imprimir la descripción (centrada en la parte superior)
+                for (const linea of descripcionLineas) {
+                    commands.push(`TEXT 30,${y},"1",0,1,1,"${linea}"\r\n`);
+                    y += 20;
+                }
+
+                // 📌 Generar código de barras en el centro
+                commands.push(`BARCODE 50,${y + 10},"128",50,1,0,2,2,"${code}"\r\n`);
+
+                // 📌 Imprimir marca y medida en la parte inferior
+                commands.push(`TEXT 50,${y + 110},"3",0,1,1,"${medida}"\r\n`);
+                commands.push(`TEXT 300,${y + 110},"3",0,1,1,"${marca}"\r\n`);
+
+                // 📌 Si la impresora admite imágenes, puedes agregar el logo GT aquí
+                // commands.push(`PUTBMP 10,${y + 20},"GT.BMP"\r\n`);
+
+                commands.push("PRINT 1,1\r\n");
+
+                console.log("📤 Enviando impresión en TSC...");
+
+                // Enviar comandos TSC a la impresora
+                for (const command of commands) {
+                    await printerCharacteristic.writeValue(new TextEncoder().encode(command));
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                }
+
+                console.log("✅ Impresión enviada en TSC");
+                alert("¡Impresión enviada en TSC!");
+
             } catch (error) {
-                console.error("❌ Error de impresión:", error);
-                alert("Error al enviar la impresión.");
+                console.error("❌ Error de impresión TSC:", error);
+                alert("Error al enviar la impresión en TSC.");
             }
         }
- 
-        // Vincular los botones
+
         document.getElementById("btnConnect").addEventListener("click", connectPrinter);
-        document.getElementById("btnPrint").addEventListener("click", printTest);
- 
-        // Función para imprimir PDF
-        function imprimirPDF() {
-            const code = document.getElementById('codeDisplay').textContent;
-            const quantity = document.getElementById('quantityInput').value;
-            const description = document.getElementById('descriptionDisplay').textContent;
-            const marca = document.getElementById('codeDisplay').dataset.marca;
-            const medida = document.getElementById('codeDisplay').dataset.medida;
- 
-            fetch('/generar_pdf', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    code: code,
-                    quantity: quantity,
-                    description: description,
-                    marca: marca,
-                    medida: medida
-                })
-            })
-            .then(response => response.blob())
-            .then(blob => {
-                const reader = new FileReader();
-                reader.onload = function() {
-                    const pdfData = reader.result.split(',')[1];
-                    const printerName = document.getElementById('printerSelect').value;
-                    if (!printerName) {
-                        alert("Por favor, selecciona una impresora.");
-                        return;
-                    }
-                    const config = qz.configs.create(printerName); // Usamos el nombre de la impresora seleccionada
-                    const data = [{
-                        type: 'pdf',
-                        format: 'base64',
-                        data: pdfData
-                    }];
-                    qz.print(config, data).then(function() {
-                        console.log("Impresión completada.");
-                        alert("El archivo se envió correctamente a la impresora.");
-                    }).catch(function(error) {
-                        console.error("Error al imprimir el PDF: ", error);
-                        alert("Error al enviar el archivo a la impresora.");
-                    });
-                };
-                reader.readAsDataURL(blob);
-            })
-            .catch(error => {
-                console.error("Error al generar el PDF: ", error);
-                alert("No se pudo generar el PDF en el servidor.");
-            });
-        }
+        document.getElementById("btnPrintEscPos").addEventListener("click", printTSC);
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
